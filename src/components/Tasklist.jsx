@@ -1,19 +1,22 @@
 import { useState } from 'react';
+import { useTasks, useTasksDispatch } from '../context/TasksContext';
 
-export default function TaskList({ tasks, onChangeTask, onDeleteTask }) {
+export default function TaskList() {
+	const tasks = useTasks();
 	return (
 		<ul>
 			{tasks.map((task) => (
 				<li key={task.id}>
-					<Task task={task} onChange={onChangeTask} onDelete={onDeleteTask} />
+					<Task task={task} />
 				</li>
 			))}
 		</ul>
 	);
 }
 
-function Task({ task, onChange, onDelete }) {
+function Task({ task }) {
 	const [isEditing, setIsEditing] = useState(false);
+	const dispatch = useTasksDispatch();
 	let taskContent;
 	if (isEditing) {
 		taskContent = (
@@ -21,9 +24,12 @@ function Task({ task, onChange, onDelete }) {
 				<input
 					value={task.text}
 					onChange={(e) => {
-						onChange({
-							...task,
-							text: e.target.value,
+						dispatch({
+							type: 'changed',
+							task: {
+								...task,
+								text: e.target.value,
+							},
 						});
 					}}
 				/>
@@ -44,14 +50,26 @@ function Task({ task, onChange, onDelete }) {
 				type="checkbox"
 				checked={task.done}
 				onChange={(e) => {
-					onChange({
-						...task,
-						done: e.target.checked,
+					dispatch({
+						type: 'changed',
+						task: {
+							...task,
+							done: e.target.checked,
+						},
 					});
 				}}
 			/>
 			{taskContent}
-			<button onClick={() => onDelete(task.id)}>Delete</button>
+			<button
+				onClick={() =>
+					dispatch({
+						type: 'deleted',
+						id: task.id,
+					})
+				}
+			>
+				Delete
+			</button>
 		</label>
 	);
 }
